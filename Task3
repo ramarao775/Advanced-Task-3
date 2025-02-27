@@ -1,0 +1,55 @@
+import requests
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# Define your API key and the city you want to fetch data for
+API_KEY = '7980ca948950cd8c998ea82cb17be3b8'  # Replace with your OpenWeatherMap API key
+CITY = 'Bengaluru'  # You can change this to any city you want
+
+# Corrected URL using the API_KEY variable
+URL = f'http://api.openweathermap.org/data/2.5/forecast?q={CITY}&units=metric&cnt=24&appid={API_KEY}'
+
+# Fetch the weather data from the OpenWeatherMap API
+response = requests.get(URL)
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Parse JSON data
+    data = response.json()
+    
+    # Debug: print out the full response to check its structure
+    # print(data)
+
+    # Ensure that the response contains the expected 'list' key
+    if 'list' in data:
+        # Extract the temperature and time data
+        times = [entry['dt_txt'] for entry in data['list']]
+        temperatures = [entry['main']['temp'] for entry in data['list']]
+        
+        # Create a DataFrame for easier handling
+        df = pd.DataFrame({
+            'Time': pd.to_datetime(times),
+            'Temperature (°C)': temperatures
+        })
+        
+        # Set the plot style
+        sns.set(style="darkgrid")
+        
+        # Plot the temperature over time
+        plt.figure(figsize=(10, 6))
+        plt.plot(df['Time'], df['Temperature (°C)'], marker='o', color='tab:blue', label='Temperature')
+        plt.title(f'Temperature Forecast for {CITY}', fontsize=16)
+        plt.xlabel('Time', fontsize=12)
+        plt.ylabel('Temperature (°C)', fontsize=12)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.legend()
+        plt.show()
+    else:
+        print("Error: 'list' key not found in the response.")
+        print("Response data:", data)
+
+else:
+    print("Failed to fetch data. Status code:", response.status_code)
+    print("Response content:", response.text)  # This will give more info about the error.
